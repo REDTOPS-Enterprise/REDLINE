@@ -1,4 +1,4 @@
-use crate::ast::{Program, Statement, Expression, Literal, Type, BinaryOperator};
+use crate::ast::{Program, Statement, Expression, Literal};
 use std::fmt;
 
 #[derive(Debug)]
@@ -16,8 +16,16 @@ impl fmt::Display for CodegenError {
 fn generate_expression(expr: &Expression) -> Result<String, CodegenError> {
     match expr {
         Expression::Literal(Literal::Int(n)) => Ok(n.to_string()),
+        Expression::Literal(Literal::Float(n)) => Ok(n.to_string()),
         Expression::Literal(Literal::String(s)) => Ok(format!("\"{}\"", s)),
         Expression::Identifier(name) => Ok(name.clone()),
+        Expression::Call(name, args) => {
+            let args_str: Result<Vec<String>, CodegenError> = args.iter()
+                .map(|arg| generate_expression(arg))
+                .collect();
+            let args_str = args_str?;
+            Ok(format!("{}({})", name, args_str.join(", ")))
+        },
         Expression::BinaryOp { op, left, right } => {
             let left_str = generate_expression(left)?;
             let right_str = generate_expression(right)?;
@@ -55,6 +63,25 @@ fn generate_block(statements: &[Statement], indent_level: usize) -> Result<Strin
             Statement::Print(expr) => {
                 let arg_str = generate_expression(expr)?;
                 block_code.push_str(&format!("{}rl::print({});\n", indent, arg_str));
+            },
+            Statement::FunctionDefinition { name, params, return_type, body } => {
+                let param_str: Vec<String> = params.iter()
+                    .map(|(param_name, param_type)| format!("{} {}", param_type.to_string(), param_name))
+                    .collect();
+                block_code.push_str(&format!("{}{} {}({}) {{\n", indent, return_type.to_string(), name, param_str.join(", ")));
+                block_code.push_str(&generate_block(body, indent_level + 1)?);
+                block_code.push_str(&format!("{}}}\n", indent));
+            },
+            Statement::Return(expr) => {
+                match expr {
+                    Some(e) => {
+                        let expr_str = generate_expression(e)?;
+                        block_code.push_str(&format!("{}return {};\n", indent, expr_str));
+                    },
+                    None => {
+                        block_code.push_str(&format!("{}return;\n", indent));
+                    }
+                }
             },
             _ => return Err(CodegenError { message: format!("Unsupported statement for codegen: {:?}", statement) }),
         }

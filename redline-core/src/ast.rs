@@ -18,8 +18,8 @@ impl ToString for Type {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     Int(i64),
+    Float(f64),
     String(String),
-    // Float(f64), // For future support
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -62,7 +62,7 @@ pub enum Expression {
         left: Box<Expression>,
         right: Box<Expression>,
     },
-    // Call(String, Vec<Expression>), // For future function calls
+    Call(String, Vec<Expression>),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -79,8 +79,13 @@ pub enum Statement {
         alternative: Option<Vec<Statement>>, // 'else' block
     },
     Print(Expression),
-    // FunctionDefinition { ... }, // For future
-    // Return(Expression), // For future
+    FunctionDefinition {
+        name: String,
+        params: Vec<(String, Type)>, // (name, type)
+        return_type: Type,
+        body: Vec<Statement>,
+    },
+    Return(Option<Expression>),
 }
 
 #[derive(Debug, PartialEq, Clone)]

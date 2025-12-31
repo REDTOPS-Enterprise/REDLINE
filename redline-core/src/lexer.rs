@@ -3,7 +3,7 @@ use std::fmt;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Var, Val, Def, Pub, Print, Return, If, Else,
-    Ident(String), Int(i64), Str(String), Type(String),
+    Ident(String), Int(i64), Float(f64), Str(String), Type(String),
     Op(String), Arrow, Colon, Assign, LParen, RParen, Comma, Newline,
 }
 
@@ -148,18 +148,44 @@ impl Lexer {
                 }
                 _ if c.is_numeric() => {
                     let mut num = String::new();
-                    while self.pos < self.input.len() && self.input[self.pos].is_numeric() {
+                    let mut is_float = false;
+
+                    while self.pos < self.input.len() && (self.input[self.pos].is_numeric() || self.input[self.pos] == '.') {
+                        if self.input[self.pos] == '.' {
+                            if is_float {
+                                return Err(LexerError {
+                                    message: format!("Invalid number: multiple decimal points"),
+                                    line: self.line,
+                                    column: self.column,
+                                });
+                            }
+                            is_float = true;
+                        }
                         num.push(self.input[self.pos]);
                         self.advance();
                     }
-                    match num.parse() {
-                        Ok(n) => tokens.push(Token::Int(n)),
-                        Err(_) => {
-                            return Err(LexerError {
-                                message: format!("Invalid number: {}", num),
-                                line: self.line,
-                                column: self.column,
-                            })
+
+                    if is_float {
+                        match num.parse() {
+                            Ok(n) => tokens.push(Token::Float(n)),
+                            Err(_) => {
+                                return Err(LexerError {
+                                    message: format!("Invalid float: {}", num),
+                                    line: self.line,
+                                    column: self.column,
+                                })
+                            }
+                        }
+                    } else {
+                        match num.parse() {
+                            Ok(n) => tokens.push(Token::Int(n)),
+                            Err(_) => {
+                                return Err(LexerError {
+                                    message: format!("Invalid integer: {}", num),
+                                    line: self.line,
+                                    column: self.column,
+                                })
+                            }
                         }
                     }
                 }
