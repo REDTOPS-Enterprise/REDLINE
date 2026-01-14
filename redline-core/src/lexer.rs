@@ -2,10 +2,19 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
+    // Keywords
     Var, Val, Def, Pub, Print, Return, If, Else, True, False, While, For, In,
+
+    // Literals and Identifiers
     Ident(String), Int(i64), Float(f64), Str(String), Type(String),
-    Op(String), Arrow, Colon, Assign, LParen, RParen, Comma, Newline, Range,
+
+    // Operators and Punctuation
+    Op(String), Arrow, Colon, Assign, LParen, RParen, LBracket, RBracket, Comma, Newline, Range,
+
+    // Indentation
     Indent, Dedent,
+
+    // Special
     EOF,
 }
 
@@ -69,7 +78,6 @@ impl Lexer {
         let mut indent_stack = vec![0];
 
         while self.pos < self.input.len() {
-            // --- Indentation Handling ---
             if self.column == 1 {
                 let mut spaces = 0;
                 let mut lookahead = self.pos;
@@ -101,7 +109,6 @@ impl Lexer {
                             return Err(LexerError { message: "Unindent does not match any outer indentation level".to_string(), line: self.line, column: self.column });
                         }
                     }
-                    // Consume the indentation whitespace
                     self.pos = lookahead;
                     self.column = spaces + 1;
                 }
@@ -109,7 +116,6 @@ impl Lexer {
 
             if self.pos >= self.input.len() { break; }
 
-            // --- Token Parsing ---
             let start_col = self.column;
             let c = self.input[self.pos];
 
@@ -119,6 +125,8 @@ impl Lexer {
                 ':' => { tokens.push(Token::new(TokenType::Colon, self.line, start_col)); self.advance(); },
                 '(' => { tokens.push(Token::new(TokenType::LParen, self.line, start_col)); self.advance(); },
                 ')' => { tokens.push(Token::new(TokenType::RParen, self.line, start_col)); self.advance(); },
+                '[' => { tokens.push(Token::new(TokenType::LBracket, self.line, start_col)); self.advance(); },
+                ']' => { tokens.push(Token::new(TokenType::RBracket, self.line, start_col)); self.advance(); },
                 ',' => { tokens.push(Token::new(TokenType::Comma, self.line, start_col)); self.advance(); },
                 '=' => {
                     if self.pos + 1 < self.input.len() && self.input[self.pos + 1] == '=' {
@@ -193,7 +201,7 @@ impl Lexer {
                         "return" => TokenType::Return, "print" => TokenType::Print,
                         "true" => TokenType::True, "false" => TokenType::False,
                         "while" => TokenType::While, "for" => TokenType::For, "in" => TokenType::In,
-                        "int" | "float" | "string" | "bool" => TokenType::Type(ident),
+                        "int" | "float" | "string" | "bool" | "list" => TokenType::Type(ident),
                         _ => TokenType::Ident(ident),
                     };
                     tokens.push(Token::new(token_type, self.line, start_col));

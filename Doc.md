@@ -1,4 +1,4 @@
-# 🟥 REDLINE v0.4.1 Documentation
+# 🟥 REDLINE v0.5 Documentation
 
 REDLINE is a high-performance, transpiled systems language designed to be as readable as Python but as fast as C++.
 
@@ -27,6 +27,7 @@ REDLINE is strictly typed, meaning the compiler ensures you don't accidentally t
 *   `float`: Decimal numbers (e.g., `10.5`, `3.14`).
 *   `string`: Text wrapped in double quotes (e.g., `"Redline"`).
 *   `bool`: Logical values (`true` or `false`).
+*   `list[T]`: A dynamic array of elements of type `T`.
 
 ## 3. Functions
 
@@ -44,14 +45,6 @@ def name(param: type) -> return_type:
 REDLINE uses `if` and `else` for logic. It uses C-style comparison operators but Python-style structure.
 
 Comparison Operators: `==`, `!=`, `>`, `<`, `>=`, `<=`
-
-Example:
-```redline
-if speed > 200:
-    print("Turbo Active")
-else:
-    print("Cruising")
-```
 
 ## 5. Loops
 
@@ -71,42 +64,47 @@ for i in 0..5:
     print(i)
 ```
 
-## 6. Input & Output
+## 6. Lists
 
-The built-in `print` and `input` commands handle communication with the console.
+REDLINE has a built-in `list` type, which is a dynamic array.
 
-### Output
+### Declaration
 ```redline
-print("System Initialized")
-print(42)
+var my_list: list[int] = [10, 20, 30]
 ```
 
-### Input
-Takes user input as a string. You can optionally provide a prompt.
+### Indexing
+Access and assign elements using square brackets.
 ```redline
-val name: string = input("Enter your name: ")
-print("Hello, " + name)
+val first_element: int = my_list[0]
+my_list[1] = 99
 ```
 
-## 7. Type Conversion
-
-REDLINE provides built-in functions to convert values between different types.
-
-*   `to_int(value)`: Converts a value (e.g., a string or float) to an integer.
-*   `to_float(value)`: Converts a value to a float.
-*   `to_string(value)`: Converts a value to a string.
+### Built-in Functions
+*   `len(list)`: Returns the number of elements in the list.
+*   `append(list, value)`: Adds a new element to the end of the list.
 
 Example:
 ```redline
-val age_str: string = input("How old are you? ")
-val age: int = to_int(age_str)
-if age >= 18:
-    print("You are an adult.")
+var numbers: list[int] = []
+append(numbers, 1)
+append(numbers, 2)
+print(len(numbers)) # Prints 2
 ```
 
-## 8. Examples
+## 7. Input & Output
 
-Here are some complete examples of what you can build with REDLINE.
+The built-in `print` and `input` commands handle communication with the console.
+
+## 8. Type Conversion
+
+REDLINE provides built-in functions to convert values between different types.
+
+*   `to_int(value)`
+*   `to_float(value)`
+*   `to_string(value)`
+
+## 9. Examples
 
 ### Fibonacci Sequence
 ```redline
@@ -115,22 +113,16 @@ def fib(n: int) -> int:
         return n
     else:
         return fib(n - 1) + fib(n - 2)
-
-for i in 0..10:
-    print(fib(i))
 ```
 
 ### Guessing Game
 ```redline
-print("I'm thinking of a number between 1 and 100.")
 val secret_number: int = 42
 var running: bool = true
-
 while running:
     val guess_str: string = input("Take a guess: ")
     if guess_str == "quit":
         running = false
-        print("Quitting.")
     else:
         val guess_num: int = to_int(guess_str)
         if guess_num < secret_number:
@@ -143,7 +135,7 @@ while running:
                 running = false
 ```
 
-## 9. The Compiler Pipeline
+## 10. The Compiler Pipeline
 
 1.  **.rl File**: You write your logic here.
 2.  **Lexer (`lexer.rs`)**: Breaks your code into "tokens".
@@ -151,7 +143,7 @@ while running:
 4.  **Code Generator (`codegen.rs`)**: Translates the AST into C++ code.
 5.  **G++ Compiler**: Turns the C++ into a runnable executable.
 
-## 10. Standard Library
+## 11. Standard Library
 
 ### rl_io.hpp
 - `print()`: Print values to stdout.
@@ -160,15 +152,8 @@ while running:
 ### rl_math.hpp
 - Common math functions (`sqrt`, `pow`, `sin`, etc.) and constants (`PI`, `E`).
 
-## 11. Roadmap
-
-These are features planned for future updates:
-
-*   `import`: For loading other `.rl` files.
-*   `pub`: For making functions accessible globally across files.
-*   `class` / `struct`: For object-oriented programming.
-*   `list` / `array`: For collections of data.
-
-## 12. Contributing
+### rl_stdlib.hpp
+- `len()`: Returns the size of a list.
+- `append()`: Appends an element to a list.
 
 This documentation is a work in progress. If you find any errors or want to improve it, please feel free to open an issue or pull request!

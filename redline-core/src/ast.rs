@@ -8,15 +8,17 @@ pub enum Type {
     Float,
     String,
     Bool,
+    List(Box<Type>),
 }
 
 impl ToString for Type {
     fn to_string(&self) -> String {
         match self {
             Type::Int => "int".to_string(),
-            Type::Float => "double".to_string(), // Mapped to double for better precision
+            Type::Float => "double".to_string(),
             Type::String => "std::string".to_string(),
             Type::Bool => "bool".to_string(),
+            Type::List(inner) => format!("std::vector<{}>", inner.to_string()),
         }
     }
 }
@@ -59,6 +61,8 @@ impl ToString for BinaryOperator {
 pub enum Expression {
     /// A literal value, e.g., `10`, `"hello"`, `true`.
     Literal(Literal),
+    /// A list literal, e.g., `[1, 2, 3]`.
+    ListLiteral(Vec<Expression>),
     /// An identifier, e.g., a variable name like `x`.
     Identifier(String),
     /// A binary operation, e.g., `x + 5`.
@@ -69,6 +73,11 @@ pub enum Expression {
     },
     /// A function call, e.g., `my_func(a, b)`.
     Call(String, Vec<Expression>),
+    /// An index access expression, e.g., `my_list[0]`.
+    Index {
+        list: Box<Expression>,
+        index: Box<Expression>,
+    },
 }
 
 /// Represents a statement. A statement is a piece of code that performs an action.
@@ -81,9 +90,9 @@ pub enum Statement {
         data_type: Type,
         initializer: Expression,
     },
-    /// An assignment to an existing variable, e.g., `x = 20`.
+    /// An assignment to an existing variable or element, e.g., `x = 20` or `my_list[0] = 1`.
     Assignment {
-        name: String,
+        target: Expression,
         value: Expression,
     },
     /// An `if-else` statement.

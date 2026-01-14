@@ -4,32 +4,35 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace rl {
-    // Using fast I/O
+    // Overload for printing std::string
     inline void print(const std::string& msg) {
-        std::ios_base::sync_with_stdio(false); // Speed boost
         std::cout << msg << "\n";
     }
 
-    // Overload for string literals to prevent implicit bool conversion
+    // Overload for printing string literals to prevent implicit bool conversion
     inline void print(const char* msg) {
-        std::ios_base::sync_with_stdio(false);
         std::cout << msg << "\n";
     }
 
+    // Overload for printing integers
     inline void print(int val) {
         std::cout << val << "\n";
     }
 
+    // Overload for printing floating-point numbers
     inline void print(double val) {
         std::cout << val << "\n";
     }
 
+    // Overload for printing booleans
     inline void print(bool val) {
         std::cout << (val ? "true" : "false") << "\n";
     }
 
+    // Function to read a line of input from the user
     inline std::string input(const std::string& prompt = "") {
         if (!prompt.empty()) {
             std::cout << prompt;

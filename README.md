@@ -8,9 +8,9 @@ REDLINE is a high-performance, transpiled systems programming language designed 
 
 *   **Python-like Syntax**: Clean, indentation-based structure. No semicolons or curly braces required.
 *   **C++ Performance**: Transpiles directly to C++, leveraging the full power of the G++ compiler.
-*   **Strict Typing**: Catch errors at compile time with a strong type system (`int`, `float`, `string`, `bool`).
+*   **Rich Type System**: Supports `int`, `float`, `string`, `bool`, and `list[T]`.
 *   **Modern Tooling**: Built-in Lexer, Parser, and Code Generator written in Rust for speed and safety.
-*   **Standard Library**: Includes fast I/O and math functions out of the box.
+*   **Standard Library**: Includes fast I/O, math, and list manipulation functions out of the box.
 
 ## 📦 Installation
 
@@ -43,10 +43,26 @@ python redline.py <path_to_file.rl>
 
 **Example:**
 ```bash
-python redline.py examples/v0.4_tests/guessing_game.rl
+python redline.py examples/v0.5_tests/list_test.rl
 ```
 
 ## 📝 Example Code
+
+**List Manipulation:**
+```redline
+# Declare a list of integers
+var my_list: list[int] = [10, 20, 30]
+
+# Add an element
+append(my_list, 40)
+
+# Change an element
+my_list[1] = 99
+
+# Print the list
+for i in 0..len(my_list):
+    print(my_list[i])
+```
 
 **Fibonacci Sequence:**
 ```redline
@@ -60,25 +76,9 @@ for i in 0..10:
     print(fib(i))
 ```
 
-**User Input:**
-```redline
-val name: string = input("What is your name? ")
-print("Welcome, " + name)
-val age_str: string = input("How old are you? ")
-val age: int = to_int(age_str)
-print("You are " + to_string(age) + " years old.")
-```
-
 ## 🗺️ Roadmap
 
-*   [x] Variables & Types (`int`, `float`, `string`, `bool`)
-*   [x] Functions & Recursion
-*   [x] Control Flow (`if`, `else`, `while`, `for`)
-*   [x] Standard I/O (`print`, `input`)
-*   [x] Type Conversion (`to_int`, `to_float`, `to_string`)
-*   [ ] Arrays & Lists
-*   [ ] Module System (`import`)
-*   [ ] Classes & Structs
+See [ROADMAP.md](ROADMAP.md) for the full list of planned features and future goals.
 
 ## 📄 License
 
