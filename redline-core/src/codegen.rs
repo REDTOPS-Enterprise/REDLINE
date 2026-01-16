@@ -244,7 +244,7 @@ fn generate_expression(expr: &Expression) -> Result<String, CodegenError> {
         Expression::Literal(Literal::Float(n)) => Ok(n.to_string()),
         Expression::Literal(Literal::String(s)) => Ok(format!("\"{}\"", s)),
         Expression::Literal(Literal::Bool(b)) => Ok(if *b { "true".to_string() } else { "false".to_string() }),
-        Expression::Index { list, index } => Ok(format!("{}[{}]", generate_expression(list)?, generate_expression(index)?)),
+        Expression::Index { list, index } => Ok(format!("{}.at({})", generate_expression(list)?, generate_expression(index)?)),
         Expression::BinaryOp { op, left, right } => Ok(format!("({} {} {})", generate_expression(left)?, op.to_string(), generate_expression(right)?)),
         Expression::ListLiteral(elements) => {
             let elems: Result<Vec<String>, _> = elements.iter().map(generate_expression).collect();
