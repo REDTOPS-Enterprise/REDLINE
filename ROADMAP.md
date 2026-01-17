@@ -16,7 +16,7 @@ This document outlines the future direction of the REDLINE language and compiler
 *   [ ] **Self-Hosted Compiler**: Rewrite the REDLINE compiler in REDLINE itself.
 
 
-## Long-Term Vision (Post v1.0)
+## Long-Term Vision (Post v1.0 and ahead)
 
 *   [ ] **Cross-Platform Support**: Officially support and test on Windows (MSVC) and macOS (Clang).
 *   [ ] **Language Server Protocol (LSP)**: Implement an LSP for better IDE integration (e.g., autocompletion, go-to-definition in VS Code, etc.).
