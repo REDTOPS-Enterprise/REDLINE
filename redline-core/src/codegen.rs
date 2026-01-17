@@ -1,4 +1,4 @@
-use crate::ast::{Program, Statement, Expression, Literal, ClassMember};
+use crate::ast::{Program, Statement, Expression, Literal, ClassMember, Type};
 use std::fmt;
 use std::path::Path;
 
@@ -33,6 +33,7 @@ pub fn generate(program: &Program, mode: GenMode, module_name: &str) -> Result<S
     if has_main {
         includes.push_str("#include <iostream>\n");
     }
+    includes.push_str("#include <memory>\n"); // For std::shared_ptr
     includes.push_str(&format!("#include \"{}.hpp\"\n", module_name));
     for stmt in &program.statements {
         if let Statement::Import(path) = stmt {
@@ -50,7 +51,7 @@ pub fn generate(program: &Program, mode: GenMode, module_name: &str) -> Result<S
                 cpp_code.push_str(&generate_statement(stmt, 0, mode, None)?);
                 cpp_code.push_str("\n");
             }
-            Statement::Class { name, members, .. } => { // Added .. to ignore is_public
+            Statement::Class { name, members, .. } => {
                 for member in members {
                     match member {
                         ClassMember::Method(method_stmt) => {
@@ -89,16 +90,19 @@ fn generate_hpp(program: &Program, module_name: &str) -> Result<String, CodegenE
     let guard = format!("RL_{}_H", module_name.to_uppercase());
 
     hpp_code.push_str(&format!("#ifndef {}\n#define {}\n\n", guard, guard));
+    hpp_code.push_str("#include <memory>\n"); // For std::shared_ptr
     hpp_code.push_str("#include \"stdlib/rl_io.hpp\"\n");
     hpp_code.push_str("#include \"stdlib/rl_math.hpp\"\n");
     hpp_code.push_str("#include \"stdlib/rl_stdlib.hpp\"\n");
+    hpp_code.push_str("#include \"stdlib/rl_file.hpp\"\n");
+    hpp_code.push_str("#include \"stdlib/rl_string.hpp\"\n");
     hpp_code.push_str("#include <string>\n#include <vector>\n\n");
     hpp_code.push_str("namespace rl {\n\n");
 
     for stmt in &program.statements {
-        if let Statement::Class { name, members, .. } = stmt { // Added .. to ignore is_public
+        if let Statement::Class { name, members, .. } = stmt {
             hpp_code.push_str(&format!("class {} {{\n", name));
-            hpp_code.push_str("public:\n"); // Simplified: all members are public for now
+            hpp_code.push_str("public:\n");
             for member in members {
                 match member {
                     ClassMember::Variable(Statement::Declaration { name, data_type, initializer, .. }) => {
@@ -118,7 +122,6 @@ fn generate_hpp(program: &Program, module_name: &str) -> Result<String, CodegenE
             }
             hpp_code.push_str("};\n\n");
         }
-        // Handle standalone public functions
         if let Statement::FunctionDefinition { is_public: true, name, params, return_type, .. } = stmt {
             let param_str: Vec<String> = params.iter().map(|(n, t)| format!("{} {}", t.to_string(), n)).collect();
             hpp_code.push_str(&format!("{} {}({});\n", return_type.to_string(), name, param_str.join(", ")));
@@ -144,7 +147,11 @@ fn generate_statement(statement: &Statement, indent_level: usize, mode: GenMode,
     let indent = "    ".repeat(indent_level);
     match statement {
         Statement::Declaration { name, data_type, initializer, .. } => {
-            Ok(format!("{}{} {} = {};\n", indent, data_type.to_string(), name, generate_expression(initializer)?))
+            let type_str = match data_type {
+                Type::Class(class_name) => format!("std::shared_ptr<{}>", class_name),
+                _ => data_type.to_string(),
+            };
+            Ok(format!("{}{} {} = {};\n", indent, type_str, name, generate_expression(initializer)?))
         },
         Statement::FunctionDefinition { name, params, return_type, body, .. } => {
             let param_str: Vec<String> = params.iter().map(|(p_name, p_type)| format!("{} {}", p_type.to_string(), p_name)).collect();
@@ -172,25 +179,65 @@ fn generate_statement(statement: &Statement, indent_level: usize, mode: GenMode,
                 Ok(format!("{}return;\n", indent))
             }
         },
+        Statement::If { condition, consequence, alternative } => {
+            let cond_str = generate_expression(condition)?;
+            let mut code = format!("{}if ({}) {{\n", indent, cond_str);
+            code.push_str(&generate_block(consequence, indent_level + 1, mode)?);
+            code.push_str(&format!("{}}}\n", indent));
+            if let Some(alt) = alternative {
+                code.push_str(&format!("{}else {{\n", indent));
+                code.push_str(&generate_block(alt, indent_level + 1, mode)?);
+                code.push_str(&format!("{}}}\n", indent));
+            }
+            Ok(code)
+        },
+        Statement::While { condition, body } => {
+            let cond_str = generate_expression(condition)?;
+            let mut code = format!("{}while ({}) {{\n", indent, cond_str);
+            code.push_str(&generate_block(body, indent_level + 1, mode)?);
+            code.push_str(&format!("{}}}\n", indent));
+            Ok(code)
+        },
+        Statement::For { iterator, start, end, body } => {
+            let start_str = generate_expression(start)?;
+            let end_str = generate_expression(end)?;
+            let mut code = format!("{}for (int {} = {}; {} < {}; ++{}) {{\n", indent, iterator, start_str, iterator, end_str, iterator);
+            code.push_str(&generate_block(body, indent_level + 1, mode)?);
+            code.push_str(&format!("{}}}\n", indent));
+            Ok(code)
+        },
+        Statement::TryCatch { try_block, catch_var, catch_block } => {
+            let mut code = format!("{}try {{\n", indent);
+            code.push_str(&generate_block(try_block, indent_level + 1, mode)?);
+            code.push_str(&format!("{}}} catch (const std::exception& {}) {{\n", indent, catch_var));
+            code.push_str(&generate_block(catch_block, indent_level + 1, mode)?);
+            code.push_str(&format!("{}}}\n", indent));
+            Ok(code)
+        },
         _ => Ok("".to_string())
     }
 }
 
 fn generate_expression(expr: &Expression) -> Result<String, CodegenError> {
     match expr {
+        Expression::New { class_name, args } => {
+            let args_str: Result<Vec<String>, _> = args.iter().map(generate_expression).collect();
+            Ok(format!("std::make_shared<{}>({})", class_name, args_str?.join(", ")))
+        },
         Expression::This => Ok("this".to_string()),
         Expression::Get { object, name } => {
-            if let Expression::This = **object {
-                Ok(format!("this->{}", name))
-            } else {
-                Ok(format!("{}.{}", generate_expression(object)?, name))
-            }
+            Ok(format!("{}->{}", generate_expression(object)?, name))
         }
         Expression::Identifier(name) => {
             match name.as_str() {
                 "to_string" => Ok("std::to_string".to_string()),
                 "to_int" => Ok("std::stoi".to_string()),
                 "to_float" => Ok("std::stod".to_string()),
+                "read_file" => Ok("rl::read_file".to_string()),
+                "write_file" => Ok("rl::write_file".to_string()),
+                "split" => Ok("rl::split".to_string()),
+                "join" => Ok("rl::join".to_string()),
+                "contains" => Ok("rl::contains".to_string()),
                 _ => Ok(name.clone()),
             }
         }
@@ -199,12 +246,11 @@ fn generate_expression(expr: &Expression) -> Result<String, CodegenError> {
             let args_str: Result<Vec<String>, _> = args.iter().map(generate_expression).collect();
             Ok(format!("{}({})", callee_str, args_str?.join(", ")))
         },
-        // Other expressions
         Expression::Literal(Literal::Int(n)) => Ok(n.to_string()),
         Expression::Literal(Literal::Float(n)) => Ok(n.to_string()),
         Expression::Literal(Literal::String(s)) => Ok(format!("\"{}\"", s)),
         Expression::Literal(Literal::Bool(b)) => Ok(if *b { "true".to_string() } else { "false".to_string() }),
-        Expression::Index { list, index } => Ok(format!("{}[{}]", generate_expression(list)?, generate_expression(index)?)),
+        Expression::Index { list, index } => Ok(format!("{}.at({})", generate_expression(list)?, generate_expression(index)?)),
         Expression::BinaryOp { op, left, right } => Ok(format!("({} {} {})", generate_expression(left)?, op.to_string(), generate_expression(right)?)),
         Expression::ListLiteral(elements) => {
             let elems: Result<Vec<String>, _> = elements.iter().map(generate_expression).collect();

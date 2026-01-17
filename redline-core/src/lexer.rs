@@ -3,7 +3,7 @@ use std::fmt;
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     // Keywords
-    Var, Val, Def, Pub, Print, Return, If, Else, True, False, While, For, In, Import, Class, This,
+    Var, Val, Def, Pub, Print, Return, If, Else, True, False, While, For, In, Import, Class, This, Try, Catch, New,
 
     // Literals and Identifiers
     Ident(String), Int(i64), Float(f64), Str(String), Type(String),
@@ -203,6 +203,7 @@ impl Lexer {
                         "true" => TokenType::True, "false" => TokenType::False,
                         "while" => TokenType::While, "for" => TokenType::For, "in" => TokenType::In,
                         "import" => TokenType::Import, "class" => TokenType::Class, "this" => TokenType::This,
+                        "try" => TokenType::Try, "catch" => TokenType::Catch, "new" => TokenType::New,
                         "int" | "float" | "string" | "bool" | "list" | "void" => TokenType::Type(ident),
                         _ => TokenType::Ident(ident),
                     };

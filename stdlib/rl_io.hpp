@@ -9,27 +9,27 @@
 namespace rl {
     // Overload for printing std::string
     inline void print(const std::string& msg) {
-        std::cout << msg << "\n";
+        std::cout << msg << std::endl;
     }
 
     // Overload for printing string literals to prevent implicit bool conversion
     inline void print(const char* msg) {
-        std::cout << msg << "\n";
+        std::cout << msg << std::endl;
     }
 
     // Overload for printing integers
     inline void print(int val) {
-        std::cout << val << "\n";
+        std::cout << val << std::endl;
     }
 
     // Overload for printing floating-point numbers
     inline void print(double val) {
-        std::cout << val << "\n";
+        std::cout << val << std::endl;
     }
 
     // Overload for printing booleans
     inline void print(bool val) {
-        std::cout << (val ? "true" : "false") << "\n";
+        std::cout << (val ? "true" : "false") << std::endl;
     }
 
     // Function to read a line of input from the user

@@ -1,4 +1,4 @@
-# 🟥 REDLINE v0.7.0 Documentation
+# 🟥 REDLINE v0.9 Documentation
 
 REDLINE is a high-performance, transpiled systems language designed to be as readable as Python but as fast as C++.
 
@@ -72,7 +72,18 @@ for i in 0..5:
     print(i)
 ```
 
-## 6. Lists
+## 6. Error Handling
+
+REDLINE uses `try` and `catch` blocks to handle runtime errors.
+
+```redline
+try:
+    val content: string = read_file("missing.txt")
+catch e:
+    print("An error occurred!")
+```
+
+## 7. Lists
 
 REDLINE has a built-in `list` type, which is a dynamic array.
 
@@ -89,18 +100,13 @@ my_list[1] = 99
 ```
 
 ### Built-in Functions
-*   `len(list)`: Returns the number of elements in the list.
-*   `append(list, value)`: Adds a new element to the end of the list.
+*   `len(list)`: Returns the number of elements.
+*   `append(list, value)`: Adds an element to the end.
+*   `sort(list)`: Sorts the list in-place.
+*   `reverse(list)`: Reverses the list in-place.
+*   `find(list, value)`: Returns the index of the value, or -1 if not found.
 
-Example:
-```redline
-var numbers: list[int] = []
-append(numbers, 1)
-append(numbers, 2)
-print(len(numbers)) # Prints 2
-```
-
-## 7. Classes & Objects
+## 8. Classes & Objects
 
 REDLINE supports Object-Oriented Programming (OOP) with classes.
 
@@ -131,7 +137,7 @@ p.greet()
 *   **`this`**: Use `this` inside methods to access member variables and other methods.
 *   **`init`**: A special method that acts as the constructor.
 
-## 8. Modules
+## 9. Modules
 
 You can split your code into multiple files using modules.
 
@@ -153,7 +159,7 @@ pub def add(a: int, b: int) -> int:
     return a + b
 ```
 
-## 9. C++ Interoperability
+## 10. C++ Interoperability
 
 REDLINE is designed to work seamlessly with C++. You can compile REDLINE code into a library and use it in your C++ projects.
 
@@ -173,37 +179,32 @@ int main() {
 }
 ```
 
-## 10. Input & Output
+## 11. Standard Library
 
-The built-in `print` and `input` commands handle communication with the console.
+### I/O (`rl_io.hpp`)
+- `print(value)`: Print to stdout.
+- `input(prompt)`: Read a string from stdin.
 
-## 11. Type Conversion
+### File I/O (`rl_file.hpp`)
+- `read_file(path) -> string`: Reads the entire content of a file. Throws on error.
+- `write_file(path, content) -> bool`: Writes content to a file. Throws on error.
 
-REDLINE provides built-in functions to convert values between different types.
+### String Manipulation (`rl_string.hpp`)
+- `split(string, delimiter) -> list[string]`: Splits a string into a list.
+- `join(list[string], delimiter) -> string`: Joins a list of strings.
+- `contains(string, substring) -> bool`: Checks if a string contains a substring.
 
-*   `to_int(value)`
-*   `to_float(value)`
-*   `to_string(value)`
-
-## 12. The Compiler Pipeline
-
-1.  **.rl File**: You write your logic here.
-2.  **Lexer (`lexer.rs`)**: Breaks your code into "tokens".
-3.  **Parser (`parser.rs`)**: Builds a structured representation (AST).
-4.  **Code Generator (`codegen.rs`)**: Translates the AST into C++ code.
-5.  **G++ Compiler**: Turns the C++ into a runnable executable.
-
-## 13. Standard Library
-
-### rl_io.hpp
-- `print()`: Print values to stdout.
-- `input()`: Read a string from stdin.
-
-### rl_math.hpp
+### Math (`rl_math.hpp`)
 - Common math functions (`sqrt`, `pow`, `sin`, etc.) and constants (`PI`, `E`).
 
-### rl_stdlib.hpp
-- `len()`: Returns the size of a list.
-- `append()`: Appends an element to a list.
+### Stdlib (`rl_stdlib.hpp`)
+- `len(list)`
+- `append(list, value)`
+- `sort(list)`
+- `reverse(list)`
+- `find(list, value)`
+- `to_int(value)`
+- `to_float(value)`
+- `to_string(value)`
 
 This documentation is a work in progress. If you find any errors or want to improve it, please feel free to open an issue or pull request!
