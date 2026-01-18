@@ -101,7 +101,7 @@ impl<'a> Parser<'a> {
                 self.advance();
                 let mut parts = Vec::new();
                 let mut last_pos = 0;
-                let mut chars: Vec<char> = s.chars().collect();
+                let chars: Vec<char> = s.chars().collect();
                 let mut i = 0;
 
                 while i < chars.len() {

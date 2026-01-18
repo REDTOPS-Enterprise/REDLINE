@@ -40,7 +40,7 @@ def print_usage():
     print("---------------------------------")
     print("A high-performance, transpiled systems language.")
     print("\nUsage:")
-    print("  redline <command> [arguments]")
+    print("  python redline.py <command> [arguments]")
     print("\nCommands:")
     print("  build [file]    Compile a REDLINE project or a single file.")
     print("  parse <file.rl> Generate C++ code from a REDLINE file without compiling.")
@@ -125,34 +125,30 @@ def init_core():
     """Initializes the REDLINE compiler core."""
     print("Initializing REDLINE Core...")
     
-    # Create a modified environment that includes the user's cargo path
-    env = os.environ.copy()
-    cargo_home = Path.home() / ".cargo" / "bin"
-    env["PATH"] = str(cargo_home) + os.pathsep + env["PATH"]
+    # Ensure we are running from the project root for cargo
+    os.chdir(PROJECT_ROOT)
 
-    cargo_executable = shutil.which("cargo", path=env["PATH"])
-    if not cargo_executable:
-        print("Error: 'cargo' command not found.")
-        print("Please install Rust from https://rustup.rs/ and ensure it's in your PATH.")
-        return False
-        
     try:
-        # Let the subprocess print directly to the console by not capturing output
         result = subprocess.run(
-            [cargo_executable, "build", "--release"],
-            cwd=CORE_DIR, 
-            env=env,
-            check=True # Raise an exception on failure
+            ["cargo", "build", "--release"],
+            cwd=CORE_DIR,
+            check=True,
+            capture_output=True,
+            text=True
         )
+        print(result.stdout)
+        if result.stderr:
+            print(result.stderr, file=sys.stderr)
+
         print("REDLINE Core initialized successfully.")
         return True
-    except subprocess.CalledProcessError:
-        # The error message from cargo will have already been printed to the console.
-        print("\nError: Cargo build failed.")
-        return False
     except FileNotFoundError:
-        print("Error: 'cargo' command not found in the script's execution environment.")
-        print("Please ensure the Rust toolchain is installed and accessible.")
+        print("Error: 'cargo' command not found. Please install Rust from https://rustup.rs/.")
+        return False
+    except subprocess.CalledProcessError as e:
+        print("\nError: Cargo build failed.")
+        print(e.stdout)
+        print(e.stderr, file=sys.stderr)
         return False
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
@@ -169,6 +165,9 @@ def find_config(start_path):
     return None
 
 def main():
+    # Ensure all paths are relative to the project root, even if called from elsewhere
+    os.chdir(PROJECT_ROOT)
+
     if len(sys.argv) < 2 or sys.argv[1] == 'help':
         print_usage()
         return

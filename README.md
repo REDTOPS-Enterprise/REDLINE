@@ -4,89 +4,55 @@
 
 REDLINE is a high-performance, transpiled systems programming language designed to combine the **readability of Python** with the **raw speed of C++**. It compiles your REDLINE code (`.rl`) into optimized C++, which is then compiled into a native executable.
 
-This project is feature-complete and ready for its v1.0 release.
-
-## 🚀 Key Features
-
-*   **Python-like Syntax**: Clean, indentation-based structure. No semicolons or curly braces required.
-*   **C++ Performance**: Transpiles directly to C++, leveraging the full power of the G++ compiler.
-*   **Object-Oriented**: Full support for classes, methods, and constructors with automatic memory management via smart pointers (`new` keyword).
-*   **Modular**: Organize your code with `import` and `pub`, and manage projects with `RedConfig.toml`.
-*   **Rich Standard Library**: Includes dictionaries, f-strings, file system I/O, command-line arguments, random number generation, and a time library.
-*   **Modern Tooling**: Built-in Lexer, Parser, and Code Generator written in Rust for speed and safety.
-
 ## 📦 Installation
+
+Installation is simple. You just need to clone the repository and initialize the compiler core.
 
 ### Prerequisites
 *   **Rust & Cargo**: To build the REDLINE compiler core.
 *   **G++ (C++17 compatible)**: To compile the generated C++ code.
-*   **Python 3**: To run the build script wrapper.
+*   **Python 3**: To run the build script.
 *   **Git**: To clone the repository.
 
-### Linux & macOS
-Run the installer script from your terminal. This will install the `redline` command system-wide.
-```bash
-# Download and run the installer
-curl -sSL https://raw.githubusercontent.com/REDTOPS-Enterprise/REDLINE/main/install.sh | sudo bash```
-You may be prompted for your password to create the system-wide command in `/usr/local/bin`.
-```
-### Windows
-Download and run the `install.bat` script. This will copy the necessary files and add the `redline` command to your user's PATH.
-```powershell
-# 1. Download install.bat from the latest release.
-# 2. Run the script from your terminal:
-.\install.bat
-```
-You will need to **restart your terminal** for the `redline` command to become available.
+### Steps
+1.  **Clone the Repository:**
+    Find a good place on your computer and clone the REDLINE repository.
+    ```bash
+    git clone https://github.com/REDTOPS-Enterprise/REDLINE.git
+    ```
+
+2.  **Navigate into the Directory:**
+    ```bash
+    cd REDLINE
+    ```
+
+3.  **Initialize the Compiler:**
+    Run the `init` command. This will use `cargo` to build the Rust-based compiler core.
+    ```bash
+    python redline.py init
+    ```
+
+Once these steps are complete, you are ready to use the compiler.
 
 ## 🛠️ Usage
 
-Once installed, you can use the `redline` command from anywhere.
+All commands are run using the `redline.py` script from within the repository folder.
 
 ### Building a Project
-If your project has a `RedConfig.toml` file, you can build it from within the project directory:
+If your project has a `RedConfig.toml` file, you can build it by running the `build` command from your project's root directory.
 ```bash
-# Navigate to your project
-cd MyTestProject
-
-# Build the project
-redline build
+# Assuming you are inside a project like 'examples/v1.0_tests/MyTestProject'
+python ../../../redline.py build
 ```
 
 ### Compiling a Single File
-You can also compile a single file directly:
+You can also compile a single file directly by providing its path:
 ```bash
-redline build path/to/my_file.rl
+python redline.py build path/to/my_file.rl
 ```
 
-## 📝 Example Code
-
-**f-strings and Dictionaries:**
-```redline
-val scores: dict[string, int] = {
-    "Alice": 100,
-    "Bob": 90
-}
-
-for name in ["Alice", "Bob"]:
-    print(f"{name}'s score is {scores[name]}.")
-```
-
-**Command-Line Arguments:**
-```redline
-# main.rl
-print(f"You passed {len(args)} arguments.")
-for arg in args:
-    print(f" - {arg}")
-```
-```bash
-$ redline build
-$ ./my_program hello world
-You passed 3 arguments.
- - ./my_program
- - hello
- - world
-```
+### (Optional) Making `redline` a Global Command
+If you want the convenience of running `redline` from anywhere, you can add the REDLINE repository directory to your system's `PATH` environment variable.
 
 ## 🗺️ Roadmap
 
