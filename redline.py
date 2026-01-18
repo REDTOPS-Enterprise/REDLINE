@@ -12,7 +12,7 @@ except ImportError:
     import toml as tomllib
 
 # --- Constants ---
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 PROJECT_ROOT = Path(__file__).parent.resolve()
 CORE_DIR = PROJECT_ROOT / "redline-core"
 CORE_BIN = CORE_DIR / "target" / "release" / "redline-core"
