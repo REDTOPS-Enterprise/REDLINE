@@ -117,37 +117,31 @@ class Compiler:
             return False
 
 def init_core():
-    """Initializes the REDLINE compiler core."""
-    print("Initializing REDLINE Core...")
+    """Initializes the REDLINE compiler core. (DEBUG MODE)"""
+    print("Initializing REDLINE Core (Debug Mode)...")
     
     cargo_path = Path.home() / ".cargo" / "bin" / "cargo"
-    if not cargo_path.exists():
-        print("Error: Could not find 'cargo' at the standard location (~/.cargo/bin/cargo).")
-        print("Please install Rust from https://rustup.rs/.")
-        return False
-        
-    try:
-        result = subprocess.run(
-            [str(cargo_path), "build", "--release"],
-            cwd=CORE_DIR,
-            check=True,
-            capture_output=True,
-            text=True
-        )
-        print(result.stdout)
-        if result.stderr:
-            print(result.stderr, file=sys.stderr)
+    
+    print(f"Attempting to use cargo at: {cargo_path}")
+    print(f"Core directory is: {CORE_DIR}")
 
-        print("REDLINE Core initialized successfully.")
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"Error: Core initialization failed.")
-        if hasattr(e, 'stdout') and e.stdout: print(e.stdout)
-        if hasattr(e, 'stderr') and e.stderr: print(e.stderr, file=sys.stderr)
+    if not cargo_path.exists():
+        print("FATAL: Cargo executable not found at standard path.")
         return False
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+    
+    if not CORE_DIR.exists():
+        print(f"FATAL: Core directory not found at: {CORE_DIR}")
         return False
+
+    # No try/except block. Let it crash and burn to see the traceback.
+    subprocess.run(
+        [str(cargo_path), "build", "--release"],
+        cwd=CORE_DIR,
+        check=True # This will raise an exception on failure
+    )
+
+    print("REDLINE Core initialized successfully.")
+    return True
 
 def find_config(start_path):
     """Searches upward from a path for a RedConfig.toml file."""
