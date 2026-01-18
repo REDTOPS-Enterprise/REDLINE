@@ -137,28 +137,22 @@ def init_core():
         return False
         
     try:
+        # Let the subprocess print directly to the console by not capturing output
         result = subprocess.run(
             [cargo_executable, "build", "--release"],
             cwd=CORE_DIR, 
             env=env,
-            check=True,
-            capture_output=True,
-            text=True
+            check=True # Raise an exception on failure
         )
-        print(result.stdout)
-        if result.stderr:
-            print(result.stderr, file=sys.stderr)
-
         print("REDLINE Core initialized successfully.")
         return True
+    except subprocess.CalledProcessError:
+        # The error message from cargo will have already been printed to the console.
+        print("\nError: Cargo build failed.")
+        return False
     except FileNotFoundError:
         print("Error: 'cargo' command not found in the script's execution environment.")
         print("Please ensure the Rust toolchain is installed and accessible.")
-        return False
-    except subprocess.CalledProcessError as e:
-        print("\nError: Cargo build failed.")
-        print(e.stdout)
-        print(e.stderr, file=sys.stderr)
         return False
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
