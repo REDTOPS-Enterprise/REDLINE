@@ -17,7 +17,7 @@ except ImportError:
         sys.exit(1)
 
 # --- Constants ---
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 # Use os.path.realpath to correctly resolve the script's true location, even when symlinked
 PROJECT_ROOT = Path(os.path.dirname(os.path.realpath(__file__)))
 CORE_DIR = PROJECT_ROOT / "redline-core"
@@ -40,7 +40,7 @@ def print_usage():
     print("---------------------------------")
     print("A high-performance, transpiled systems language.")
     print("\nUsage:")
-    print("  python redline.py <command> [arguments]")
+    print("  redline <command> [arguments]")
     print("\nCommands:")
     print("  build [file]    Compile a REDLINE project or a single file.")
     print("  parse <file.rl> Generate C++ code from a REDLINE file without compiling.")
@@ -92,7 +92,7 @@ class Compiler:
             return self.modules[source_path]
 
         print(f"  -> Analyzing module: {source_path.name}")
-        ast = self.get_ast(source_file)
+        ast = self.get_ast(source_path)
         if not ast:
             return None
 
@@ -125,30 +125,34 @@ def init_core():
     """Initializes the REDLINE compiler core."""
     print("Initializing REDLINE Core...")
     
-    # Ensure we are running from the project root for cargo
-    os.chdir(PROJECT_ROOT)
+    # Create a modified environment that includes the user's cargo path
+    env = os.environ.copy()
+    cargo_home = Path.home() / ".cargo" / "bin"
+    env["PATH"] = str(cargo_home) + os.pathsep + env["PATH"]
 
+    cargo_executable = shutil.which("cargo", path=env["PATH"])
+    if not cargo_executable:
+        print("Error: 'cargo' command not found.")
+        print("Please install Rust from https://rustup.rs/ and ensure it's in your PATH.")
+        return False
+        
     try:
+        # Let the subprocess print directly to the console by not capturing output
         result = subprocess.run(
-            ["cargo", "build", "--release"],
-            cwd=CORE_DIR,
-            check=True,
-            capture_output=True,
-            text=True
+            [cargo_executable, "build", "--release"],
+            cwd=CORE_DIR, 
+            env=env,
+            check=True # Raise an exception on failure
         )
-        print(result.stdout)
-        if result.stderr:
-            print(result.stderr, file=sys.stderr)
-
         print("REDLINE Core initialized successfully.")
         return True
-    except FileNotFoundError:
-        print("Error: 'cargo' command not found. Please install Rust from https://rustup.rs/.")
-        return False
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
+        # The error message from cargo will have already been printed to the console.
         print("\nError: Cargo build failed.")
-        print(e.stdout)
-        print(e.stderr, file=sys.stderr)
+        return False
+    except FileNotFoundError:
+        print("Error: 'cargo' command not found in the script's execution environment.")
+        print("Please ensure the Rust toolchain is installed and accessible.")
         return False
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
@@ -290,7 +294,7 @@ def main():
             except subprocess.CalledProcessError as e:
                 print(f"G++ compilation failed: {e}")
     finally:
-        if BUILD_DIR.exists():
+        if command != "parse" and BUILD_DIR.exists():
             shutil.rmtree(BUILD_DIR)
             print("Temporary build directory cleaned up.")
 
